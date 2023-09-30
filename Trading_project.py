@@ -578,7 +578,7 @@ def main():
     Comment('Настройка графика').print_time()
 
     Custom().balance_type('demo')
-    Custom().select_option('curr', 'EUR/RUB OTC')
+    Custom().select_option('curr', 'EUR/USD OTC')
     Custom().chart_type('candle')
     Custom().scale('D14')
     Custom().time('M1')
