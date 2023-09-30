@@ -14,7 +14,7 @@ class Comment():
     @classmethod
     def counter(cls) -> None:
         cls.count += 1
-        cls.actual_datetime_1, cls.actual_datetime_2 = cls.actual_datetime_1, datetime.now()
+        cls.actual_datetime_1, cls.actual_datetime_2 = cls.actual_datetime_2, datetime.now()
 
     def print_time(self) -> None:
         Comment.counter()

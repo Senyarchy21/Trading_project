@@ -600,7 +600,7 @@ def main():
     check_r, check_g, check_b = pyautogui.pixel(
         Variables.chart_border_right, Variables.chart_border_top)
 
-    for i in range(18000):
+    for i in range(5):
 
         r, g, b = pyautogui.pixel(
             Variables.chart_border_right, Variables.chart_border_top)
