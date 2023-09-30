@@ -1,3 +1,3 @@
-# Git and Github Course
+# Trading project
 
-Crash course for Git
+Creating a bot that would parse data and apply ML models to trade
