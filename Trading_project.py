@@ -11,6 +11,7 @@ import pytesseract
 import mss.tools
 import datetime
 import pyodbc
+from Comments import Comment
 
 driver = webdriver.Chrome()
 
@@ -564,19 +565,27 @@ class Parse():
 
 
 def main():
+    Comment('Открытие сайта').print_first_time()
+
     Open_window().open_window()
     Open_window().login()
+
+    Comment('Получение данных о разрешении монитора и положении зоны графика на мониторе').print_time()
 
     Get_parametres().get_monitor_resoluthion()
     Get_parametres().get_chart_borders()
 
+    Comment('Настройка графика').print_time()
+
     Custom().balance_type('demo')
-    Custom().select_option('curr', 'EUR/RUB OTC')
+    Custom().select_option('curr', 'EUR/USD OTC')
     Custom().chart_type('candle')
     Custom().scale('D14')
     Custom().time('M1')
     Custom().autoscroll()
     Custom().narrow_chart()
+
+    Comment('Получение координат последней свечи').print_time()
 
     Parse().get_last_candle_position()
 
@@ -586,10 +595,12 @@ def main():
     #     pyautogui.dragTo(Variables.last_candle_x,
     #                      Variables.last_candle_y, 1, button='left')
 
+    Comment('Парсинг данных').print_time()
+
     check_r, check_g, check_b = pyautogui.pixel(
         Variables.chart_border_right, Variables.chart_border_top)
 
-    for i in range(18000):
+    for i in range(5):
 
         r, g, b = pyautogui.pixel(
             Variables.chart_border_right, Variables.chart_border_top)
@@ -602,6 +613,8 @@ def main():
             Parse().record_to_sql(t, open, close, max, min)
             # time.sleep(1)
             # pyautogui.click()
+
+    Comment().print_final_time()
 
 
 if __name__ == '__main__':
