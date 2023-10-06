@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import numpy as np
 import time
+import os
 from win32api import GetSystemMetrics
 import win32gui
 import pyautogui
@@ -12,13 +13,15 @@ import mss.tools
 import datetime
 import pyodbc
 from Comments import Comment
+from dotenv import load_dotenv
 
 driver = webdriver.Chrome()
+load_dotenv()
 
 
 class Credentials():
-    email = 'senyaars21@gmail.com'  # enter your e-mail
-    password = 'Arseniy777201210'  # enter your password
+    email = os.getenv('EMAIL')  # enter your e-mail
+    password = os.getenv('PASSWORD')  # enter your password
 
 
 class Variables():
@@ -389,6 +392,9 @@ class Parse():
             color_down_left = pyautogui.pixel(113, bottom - 69)
             color_down_right = pyautogui.pixel(113 + 53, bottom - 69)
 
+            print(
+                f'^<:{color_up_left}, ^>: {color_up_right}, v<: {color_down_left}, v>: {color_down_right}')
+
         while (color_up_left != color_check_up_left) and (color_up_right != color_check_up_right) and (color_down_left != color_check_down_left) and (color_down_right != color_check_down_right):
             pyautogui.moveRel(-1, 0)
 
@@ -398,9 +404,13 @@ class Parse():
             color_down_left = pyautogui.pixel(113, bottom - 69)
             color_down_right = pyautogui.pixel(113 + 53, bottom - 69)
 
+            print(
+                f'^<:{color_up_left}, ^>: {color_up_right}, v<: {color_down_left}, v>: {color_down_right}')
+
         pyautogui.moveRel(-int(round((Variables.candle_width - 1) / 2)), 0)
 
         pyautogui.mouseDown(button='left')
+        time.sleep(0.1)
         pyautogui.moveTo(Variables.last_candle_x, Variables.last_candle_y, 0.3)
         pyautogui.mouseUp(button='left')
 
@@ -595,7 +605,7 @@ def main():
     Comment('Настройка графика').print_time()
 
     Custom().balance_type('demo')
-    Custom().select_option('curr', 'EUR/USD OTC')
+    Custom().select_option('curr', 'EUR/RUB OTC')
     Custom().chart_type('candle')
     Custom().scale('D14')
     Custom().time('M1')
@@ -619,7 +629,9 @@ def main():
     check_r, check_g, check_b = pyautogui.pixel(
         Variables.chart_border_right, Variables.chart_border_top)
 
-    for i in range(10):
+    print(f'Ширина свечи: {Variables.candle_width}')
+
+    for i in range(20):
 
         r, g, b = pyautogui.pixel(
             Variables.chart_border_right, Variables.chart_border_top)
