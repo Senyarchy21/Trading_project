@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import numpy as np
 import time
+import os
 from win32api import GetSystemMetrics
 import win32gui
 import pyautogui
@@ -12,19 +13,22 @@ import mss.tools
 import datetime
 import pyodbc
 from Comments import Comment
+from dotenv import load_dotenv
 
 driver = webdriver.Chrome()
+load_dotenv()
 
 
 class Credentials():
-    email = '***'  # enter your e-mail
-    password = '***'  # enter your password
+    email = os.getenv('EMAIL')  # enter your e-mail
+    password = os.getenv('PASSWORD')  # enter your password
 
 
 class Variables():
     last_candle_x = 0
     last_candle_y = 0
     candle_distance = 0
+    candle_width = 0
 
     monitor_width = 0
     monitor_height = 0
@@ -42,6 +46,10 @@ class Variables():
     @classmethod
     def set_candle_distance(cls, distance: int) -> None:
         cls.candle_distance = distance
+
+    @classmethod
+    def set_candle_width(cls, width: int) -> None:
+        cls.candle_width = width
 
     @classmethod
     def set_monitor_resoluthion(cls, width: int, height: int) -> None:
@@ -102,7 +110,10 @@ class Get_parametres():
             h_crop += 1
             r, g, b = pyautogui.pixel(w_mid, h_crop)
 
-        bottom = h_crop - 1
+        if h_crop == h - 1:
+            bottom = h_crop
+        else:
+            bottom = h_crop - 1
 
         left = 0
 
@@ -177,8 +188,7 @@ class Custom():
             'fav': "//div[@class='assets-block__nav']//*[contains(text(), 'Избранное')]"
         }
 
-        elem = driver.find_element(
-            By.XPATH, product_dict[self.product])
+        elem = driver.find_element(By.XPATH, product_dict[self.product])
         elem.click()
 
         time.sleep(0.5)
@@ -214,8 +224,7 @@ class Custom():
 
         time.sleep(0.5)
 
-        elem = driver.find_element(
-            By.XPATH, type_dict[self.type])
+        elem = driver.find_element(By.XPATH, type_dict[self.type])
         elem.click()
 
         time.sleep(0.5)
@@ -236,8 +245,7 @@ class Custom():
 
         time.sleep(0.5)
 
-        elem = driver.find_element(
-            By.XPATH, type_dict[self.type])
+        elem = driver.find_element(By.XPATH, type_dict[self.type])
         elem.click()
 
         time.sleep(0.5)
@@ -354,15 +362,15 @@ class Parse():
 
         Variables().set_last_candle(int(round((x_r + x_l) / 2, 0)), h_locator)
         Variables().set_candle_distance(x_r - x_r_2 + 1)
+        Variables().set_candle_width(int(round(x_r - x_l)))
 
     def move_to_last_candle(self) -> None:
         pyautogui.moveTo(Variables.last_candle_x, Variables.last_candle_y)
 
     def get_previous_candle(self) -> None:
-        pyautogui.mouseDown(Variables.last_candle_x -
-                            Variables.candle_distance, Variables.last_candle_y, button='left')
-        pyautogui.moveTo(Variables.last_candle_x,
-                         Variables.last_candle_y, 0.3)
+        pyautogui.mouseDown(Variables.last_candle_x - Variables.candle_distance,
+                            Variables.last_candle_y, button='left')
+        pyautogui.moveTo(Variables.last_candle_x, Variables.last_candle_y, 0.3)
         pyautogui.mouseUp(button='left')
 
     def get_previous_candle_new(self) -> None:
@@ -373,10 +381,19 @@ class Parse():
         color_check_down_left = (113, 129, 150)
         color_check_down_right = (99, 114, 133)
 
-        color_up_left = (0, 0, 0)
-        color_up_right = (0, 0, 0)
-        color_down_left = (0, 0, 0)
-        color_down_right = (0, 0, 0)
+        color_up_left = (122, 140, 162)
+        color_up_right = (84, 96, 115)
+        color_down_left = (113, 129, 150)
+        color_down_right = (99, 114, 133)
+
+        while (color_up_left == color_check_up_left) or (color_up_right == color_check_up_right) or (color_down_left == color_check_down_left) or (color_down_right == color_check_down_right):
+            pyautogui.moveRel(-1, 0)
+
+            color_up_left = pyautogui.pixel(113 + 1, bottom - 69 - 61)
+            color_up_right = pyautogui.pixel(
+                113 + 53 + 2, bottom - 69 - 61 + 1)
+            color_down_left = pyautogui.pixel(113, bottom - 69)
+            color_down_right = pyautogui.pixel(113 + 53, bottom - 69)
 
         while (color_up_left != color_check_up_left) and (color_up_right != color_check_up_right) and (color_down_left != color_check_down_left) and (color_down_right != color_check_down_right):
             pyautogui.moveRel(-1, 0)
@@ -387,32 +404,54 @@ class Parse():
             color_down_left = pyautogui.pixel(113, bottom - 69)
             color_down_right = pyautogui.pixel(113 + 53, bottom - 69)
 
-    def get_quotes(self) -> None:
+        pyautogui.moveRel(-int(round((Variables.candle_width - 1) / 2)), 0)
+
+        pyautogui.mouseDown(button='left')
+        pyautogui.moveTo(Variables.last_candle_x, Variables.last_candle_y, 0.3)
+        pyautogui.mouseUp(button='left')
+
+    def get_quotes(self, i) -> None:
         w, h = Variables.monitor_width, Variables.monitor_height
 
         # Открытие
         with mss.mss() as sct_open:
             monitor = {"top": h - 134, "left": 111, "width": 127, "height": 13}
+            # output = f"screenshots/sct_open_{i}.png"
 
             sct_open_img = sct_open.grab(monitor)
+
+            # mss.tools.to_png(sct_open_img.rgb,
+            #                  sct_open_img.size, output=output)
 
         # Закрытие
         with mss.mss() as sct_close:
             monitor = {"top": h - 116, "left": 111, "width": 127, "height": 13}
+            # output = f"screenshots/sct_close_{i}.png"
 
             sct_close_img = sct_close.grab(monitor)
+
+            # mss.tools.to_png(sct_close_img.rgb,
+            #                  sct_close_img.size, output=output)
 
         # Максимум
         with mss.mss() as sct_max:
             monitor = {"top": h - 98, "left": 111, "width": 127, "height": 13}
+            # output = f"screenshots/sct_max_{i}.png"
 
             sct_max_img = sct_max.grab(monitor)
+
+            # mss.tools.to_png(sct_max_img.rgb,
+            #                  sct_max_img.size, output=output)
 
         # Минимум
         with mss.mss() as sct_min:
             monitor = {"top": h - 80, "left": 111, "width": 127, "height": 13}
+            # output = f"screenshots/sct_min_{i}.png"
 
             sct_min_img = sct_min.grab(monitor)
+
+            # mss.tools.to_png(sct_min_img.rgb,
+            #                  sct_min_img.size, output=output)
 
         open_img = Image.frombytes(
             "RGB", sct_open_img.size, sct_open_img.bgra, "raw", "BGRX")
@@ -578,7 +617,7 @@ def main():
     Comment('Настройка графика').print_time()
 
     Custom().balance_type('demo')
-    Custom().select_option('curr', 'EUR/USD OTC')
+    Custom().select_option('curr', 'EUR/RUB OTC')
     Custom().chart_type('candle')
     Custom().scale('D14')
     Custom().time('M1')
@@ -597,10 +636,12 @@ def main():
 
     Comment('Парсинг данных').print_time()
 
+    Parse().move_to_last_candle()
+
     check_r, check_g, check_b = pyautogui.pixel(
         Variables.chart_border_right, Variables.chart_border_top)
 
-    for i in range(5):
+    for i in range(20):
 
         r, g, b = pyautogui.pixel(
             Variables.chart_border_right, Variables.chart_border_top)
@@ -608,11 +649,9 @@ def main():
         if (r != check_r) or (g != check_g) or (b != check_b):
             break
         else:
-            Parse().get_previous_candle()
-            t, open, close, max, min = Parse().get_quotes()
+            Parse().get_previous_candle_new()
+            t, open, close, max, min = Parse().get_quotes(i)
             Parse().record_to_sql(t, open, close, max, min)
-            # time.sleep(1)
-            # pyautogui.click()
 
     Comment().print_final_time()
 

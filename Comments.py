@@ -16,6 +16,13 @@ class Comment():
         cls.count += 1
         cls.actual_datetime_1, cls.actual_datetime_2 = cls.actual_datetime_2, datetime.now()
 
+    def print_first_time(self) -> None:
+        print(f'\nВремя начала работы скрипта: {Comment.start_time}')
+
+        Comment.counter()
+
+        print(Comment.count, '. ', self.comment, sep='')
+
     def print_time(self) -> None:
         Comment.counter()
 
@@ -25,13 +32,6 @@ class Comment():
         elif Comment.count == 2:
             print(' ' * (len(str(Comment.count - 1)) + 2),
                   '-Выполнено за: ', datetime.now() - Comment.start_time, sep='')
-
-        print(Comment.count, '. ', self.comment, sep='')
-
-    def print_first_time(self) -> None:
-        print(f'\nВремя начала сборки прогноза: {Comment.start_time}')
-
-        Comment.counter()
 
         print(Comment.count, '. ', self.comment, sep='')
 
