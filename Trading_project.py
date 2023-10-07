@@ -110,7 +110,10 @@ class Get_parametres():
             h_crop += 1
             r, g, b = pyautogui.pixel(w_mid, h_crop)
 
-        bottom = h_crop - 1
+        if h_crop == h - 1:
+            bottom = h_crop
+        else:
+            bottom = h_crop - 1
 
         left = 0
 
@@ -383,7 +386,7 @@ class Parse():
         color_down_left = (113, 129, 150)
         color_down_right = (99, 114, 133)
 
-        while (color_up_left == color_check_up_left) and (color_up_right == color_check_up_right) and (color_down_left == color_check_down_left) and (color_down_right == color_check_down_right):
+        while (color_up_left == color_check_up_left) or (color_up_right == color_check_up_right) or (color_down_left == color_check_down_left) or (color_down_right == color_check_down_right):
             pyautogui.moveRel(-1, 0)
 
             color_up_left = pyautogui.pixel(113 + 1, bottom - 69 - 61)
@@ -391,9 +394,6 @@ class Parse():
                 113 + 53 + 2, bottom - 69 - 61 + 1)
             color_down_left = pyautogui.pixel(113, bottom - 69)
             color_down_right = pyautogui.pixel(113 + 53, bottom - 69)
-
-            print(
-                f'^<:{color_up_left}, ^>: {color_up_right}, v<: {color_down_left}, v>: {color_down_right}')
 
         while (color_up_left != color_check_up_left) and (color_up_right != color_check_up_right) and (color_down_left != color_check_down_left) and (color_down_right != color_check_down_right):
             pyautogui.moveRel(-1, 0)
@@ -404,42 +404,54 @@ class Parse():
             color_down_left = pyautogui.pixel(113, bottom - 69)
             color_down_right = pyautogui.pixel(113 + 53, bottom - 69)
 
-            print(
-                f'^<:{color_up_left}, ^>: {color_up_right}, v<: {color_down_left}, v>: {color_down_right}')
-
         pyautogui.moveRel(-int(round((Variables.candle_width - 1) / 2)), 0)
 
         pyautogui.mouseDown(button='left')
-        time.sleep(0.1)
         pyautogui.moveTo(Variables.last_candle_x, Variables.last_candle_y, 0.3)
         pyautogui.mouseUp(button='left')
 
-    def get_quotes(self) -> None:
+    def get_quotes(self, i) -> None:
         w, h = Variables.monitor_width, Variables.monitor_height
 
         # Открытие
         with mss.mss() as sct_open:
             monitor = {"top": h - 134, "left": 111, "width": 127, "height": 13}
+            # output = f"screenshots/sct_open_{i}.png"
 
             sct_open_img = sct_open.grab(monitor)
+
+            # mss.tools.to_png(sct_open_img.rgb,
+            #                  sct_open_img.size, output=output)
 
         # Закрытие
         with mss.mss() as sct_close:
             monitor = {"top": h - 116, "left": 111, "width": 127, "height": 13}
+            # output = f"screenshots/sct_close_{i}.png"
 
             sct_close_img = sct_close.grab(monitor)
+
+            # mss.tools.to_png(sct_close_img.rgb,
+            #                  sct_close_img.size, output=output)
 
         # Максимум
         with mss.mss() as sct_max:
             monitor = {"top": h - 98, "left": 111, "width": 127, "height": 13}
+            # output = f"screenshots/sct_max_{i}.png"
 
             sct_max_img = sct_max.grab(monitor)
+
+            # mss.tools.to_png(sct_max_img.rgb,
+            #                  sct_max_img.size, output=output)
 
         # Минимум
         with mss.mss() as sct_min:
             monitor = {"top": h - 80, "left": 111, "width": 127, "height": 13}
+            # output = f"screenshots/sct_min_{i}.png"
 
             sct_min_img = sct_min.grab(monitor)
+
+            # mss.tools.to_png(sct_min_img.rgb,
+            #                  sct_min_img.size, output=output)
 
         open_img = Image.frombytes(
             "RGB", sct_open_img.size, sct_open_img.bgra, "raw", "BGRX")
@@ -629,8 +641,6 @@ def main():
     check_r, check_g, check_b = pyautogui.pixel(
         Variables.chart_border_right, Variables.chart_border_top)
 
-    print(f'Ширина свечи: {Variables.candle_width}')
-
     for i in range(20):
 
         r, g, b = pyautogui.pixel(
@@ -640,7 +650,7 @@ def main():
             break
         else:
             Parse().get_previous_candle_new()
-            t, open, close, max, min = Parse().get_quotes()
+            t, open, close, max, min = Parse().get_quotes(i)
             Parse().record_to_sql(t, open, close, max, min)
 
     Comment().print_final_time()
